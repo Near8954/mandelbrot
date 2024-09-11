@@ -1,0 +1,20 @@
+[
+{
+  "directory": "/home/near/mandelbrot/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/Mandelbrot_set.dir/App.cpp.o -c /home/near/mandelbrot/App.cpp",
+  "file": "/home/near/mandelbrot/App.cpp",
+  "output": "CMakeFiles/Mandelbrot_set.dir/App.cpp.o"
+},
+{
+  "directory": "/home/near/mandelbrot/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/Mandelbrot_set.dir/complex.cpp.o -c /home/near/mandelbrot/complex.cpp",
+  "file": "/home/near/mandelbrot/complex.cpp",
+  "output": "CMakeFiles/Mandelbrot_set.dir/complex.cpp.o"
+},
+{
+  "directory": "/home/near/mandelbrot/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/Mandelbrot_set.dir/main.cpp.o -c /home/near/mandelbrot/main.cpp",
+  "file": "/home/near/mandelbrot/main.cpp",
+  "output": "CMakeFiles/Mandelbrot_set.dir/main.cpp.o"
+}
+]

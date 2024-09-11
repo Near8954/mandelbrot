@@ -1,0 +1,5 @@
+# ninja log v6
+2	21	1726074354351117831	CMakeFiles/Mandelbrot_set.dir/complex.cpp.o	8520173b0d272328
+2	664	1726074354351117831	CMakeFiles/Mandelbrot_set.dir/main.cpp.o	38515f443544ee20
+1	770	1726074354350117914	CMakeFiles/Mandelbrot_set.dir/App.cpp.o	9fb54afdbb1bf2e2
+770	971	1726074355119054117	Mandelbrot_set	f20fef25623b5a8f

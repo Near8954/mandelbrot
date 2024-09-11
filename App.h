@@ -1,10 +1,14 @@
 #include <SFML/Graphics.hpp>
+#include <string>
 
 class App {
- public:
-  App(int height, int width) {
+public:
+    App(int height, int width, std::string name = "Window");
 
-  }
+    ~App();
 
- private:
+private:
+    int height_, width_;
+    sf::RenderWindow *window_;
+    std::string name_;
 };

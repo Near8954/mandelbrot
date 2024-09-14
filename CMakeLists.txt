@@ -12,7 +12,9 @@ add_executable(Mandelbrot_set
         complex.cpp
         complex.h
 
-        main.cpp)
+        main.cpp
+        Mandelbrot.cpp
+        Mandelbrot.h)
 
 include(CTest)
 

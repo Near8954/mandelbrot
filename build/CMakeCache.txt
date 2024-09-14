@@ -269,9 +269,6 @@ Mandelbrot_set_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 Mandelbrot_set_SOURCE_DIR:STATIC=/home/near/mandelbrot
 
-//The directory containing a CMake configuration file for SFML.
-SFML_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/SFML
-
 //Name of the computer/site where compile is being run
 SITE:STRING=near-IdeaPad-Gaming-3-15ARH05
 

@@ -1,8 +1,21 @@
 #include "App.h"
 #include "complex.h"
 
+struct coords {
+    double col_start;
+    double row_start;
+    double col_end;
+    double row_end;
+};
+
+
 sf::Color get_color(int iter) {
     sf::Color color(iter * 47 % 255, iter * 85 % 255, iter * 92 % 255);
+    return color;
+}
+
+sf::Color get_wb_color(int iter) {
+    sf::Color color(255 - iter, 255 - iter, 255 - iter);
     return color;
 }
 
@@ -14,7 +27,7 @@ double recalc(double start_base, double end_base, double start_result, double en
 }
 
 void calculateVertices(std::vector<sf::Vertex> &vertices, double col_start, double col_end, double row_start,
-                       double row_end, int hei, int wid) {
+                       double row_end, int hei, int wid, bool wb) {
     vertices.clear();
     int iter_num = 255;
     double iinc = (col_end - col_start) / hei;
@@ -28,8 +41,12 @@ void calculateVertices(std::vector<sf::Vertex> &vertices, double col_start, doub
             sf::Color color = sf::Color::Black;
             for (int ii = 0; ii < iter_num; ii++) {
                 z = z * z + c;
-                if (z.get_imag() * z.get_imag() + z.get_real() * z.get_real() > 4) {
-                    color = get_color(ii);
+                if (z.get_imag() * z.get_imag() + z.get_real() * z.get_real() >= 4) {
+                    if (!wb) {
+                        color = get_color(ii);
+                    } else {
+                        color = get_wb_color(ii);
+                    }
                     break;
                 }
             }
@@ -40,15 +57,15 @@ void calculateVertices(std::vector<sf::Vertex> &vertices, double col_start, doub
 };
 
 
-App::App(int height, int width, std::string name)
-    : height_(height), width_(width), name_(std::move(name)) {
+App::App(int height, int width, std::string name, bool wb)
+    : height_(height), width_(width), name_(std::move(name)), wb_(wb) {
     window_ = new sf::RenderWindow(sf::VideoMode(height_, width_), name_);
     window_->clear(sf::Color(125, 125, 125, 255));
-    window_->display();
     sf::Vector2f pressed, released;
     int iter_num = 255;
     sf::RectangleShape rect;
     std::vector<sf::Vertex> vertices;
+    std::stack<coords> history;
     double row_start = -2;
     double col_start = -2;
     double row_end = 2;
@@ -56,8 +73,9 @@ App::App(int height, int width, std::string name)
     int hei = height_;
     int wid = width_;
 
+    bool changed = true;
 
-    calculateVertices(vertices, col_start, col_end, row_start, row_end, hei, wid);
+    calculateVertices(vertices, col_start, col_end, row_start, row_end, hei, wid, wb_);
 
     while (window_->isOpen()) {
         sf::Event event;
@@ -75,14 +93,19 @@ App::App(int height, int width, std::string name)
                         sf::Vector2f(std::max(pressed.x, released.x), std::max(pressed.y, released.y));
 
 
-                double new_row_start = recalc(0, 800, row_start, row_end, left_up.x);
-                // right_up.x / wid * (row_end - row_start);
-                double new_row_end = recalc(0, 800, row_start, row_end, right_down.x);
-                // left_down.x / wid * (row_end - row_start);
-                double new_col_start = recalc(0, 800, col_start, col_end, left_up.y);
-                // left_down.y / hei * (col_end - col_start);
-                double new_col_end = recalc(0, 800, col_start, col_end, right_down.y);
-                // right_up.y / hei * (col_end - col_start);
+                double new_col_start = col_start + (col_end - col_start) / wid * left_up.x;
+                double new_col_end = col_end - (col_end - col_start) / wid * (wid - right_down.x);
+
+                double new_row_start = row_start + (row_end - row_start) / hei * right_down.y;
+                double new_row_end = row_end - (row_end - row_start) / hei * (hei - left_up.y);
+
+                coords prev{};
+                prev.col_start = col_start;
+                prev.row_start = row_start;
+                prev.col_end = col_end;
+                prev.row_end = row_end;
+
+                history.push(prev);
 
                 std::cout << pressed.x << " " << pressed.y << " " << released.x << " " << released.y << "\n";
                 std::cout << new_row_start << " " << new_row_end << " " << new_col_start << " " << new_col_end << "\n";
@@ -102,12 +125,25 @@ App::App(int height, int width, std::string name)
                 // std::cout << col_start << ' ' << col_end << std::endl;
                 // std::cout << row_start << ' ' << row_end << std::endl;
 
-                calculateVertices(vertices, col_start, col_end, row_start, row_end, hei, wid);
+                calculateVertices(vertices, col_start, col_end, row_start, row_end, hei, wid, wb_);
+                changed = true;
+            }
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
+                if (!history.empty()) {
+                    row_start = history.top().row_start;
+                    col_start = history.top().col_start;
+                    row_end = history.top().row_end;
+                    col_end = history.top().col_end;
+                    calculateVertices(vertices, col_start, col_end, row_start, row_end, hei, wid, wb_);
+                }
             }
         }
-        window_->clear(sf::Color(125, 125, 125, 255));
-        draw(vertices);
-        window_->display();
+        if (changed) {
+            window_->clear(sf::Color(125, 125, 125, 255));
+            draw(vertices);
+            window_->display();
+        }
+        changed = false;
     }
 }
 

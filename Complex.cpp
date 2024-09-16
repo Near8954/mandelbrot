@@ -1,7 +1,7 @@
-#include "complex.h"
+#include "Complex.h"
 
 #include <cmath>
-#include <math.h>
+#include <cmath>
 #include <valarray>
 
 Complex Complex::operator+(const Complex &c) const {

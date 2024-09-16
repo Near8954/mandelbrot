@@ -1,5 +1,6 @@
 #include "App.h"
-#include "complex.h"
+#include "Complex.h"
+#include <stack>
 
 struct coords {
     double col_start;
@@ -17,13 +18,6 @@ sf::Color get_color(int iter) {
 sf::Color get_wb_color(int iter) {
     sf::Color color(255 - iter, 255 - iter, 255 - iter);
     return color;
-}
-
-double recalc(double start_base, double end_base, double start_result, double end_result, double x) {
-    double base_len = end_base - start_base;
-    double result_len = end_result - start_result;
-    double res_x = result_len * x / base_len + start_result;
-    return res_x;
 }
 
 void calculateVertices(std::vector<sf::Vertex> &vertices, double col_start, double col_end, double row_start,
@@ -50,7 +44,7 @@ void calculateVertices(std::vector<sf::Vertex> &vertices, double col_start, doub
                     break;
                 }
             }
-            sf::Vertex vertex = sf::Vertex(sf::Vector2f(x, y), color);
+            auto vertex = sf::Vertex(sf::Vector2f(static_cast<float>(x), static_cast<float>(y)), color);
             vertices.push_back(vertex);
         }
     }
@@ -62,42 +56,42 @@ App::App(int height, int width, std::string name, bool wb)
     window_ = new sf::RenderWindow(sf::VideoMode(height_, width_), name_);
     window_->clear(sf::Color(125, 125, 125, 255));
     sf::Vector2f pressed, released;
-    int iter_num = 255;
-    sf::RectangleShape rect;
     std::vector<sf::Vertex> vertices;
     std::stack<coords> history;
     double row_start = -2;
     double col_start = -2;
     double row_end = 2;
     double col_end = 2;
+    bool isSelecting = false;
     int hei = height_;
     int wid = width_;
-
-    bool changed = true;
-
     calculateVertices(vertices, col_start, col_end, row_start, row_end, hei, wid, wb_);
 
     while (window_->isOpen()) {
-        sf::Event event;
+        sf::Event event{};
         while (window_->pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window_->close();
             }
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                pressed = sf::Vector2f(sf::Mouse::getPosition(*window_).x, sf::Mouse::getPosition(*window_).y);
+                pressed = sf::Vector2f(static_cast<float>(sf::Mouse::getPosition(*window_).x),
+                                       static_cast<float>(sf::Mouse::getPosition(*window_).y));
+                isSelecting = true;
             }
             if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-                released = sf::Vector2f(sf::Mouse::getPosition(*window_).x, sf::Mouse::getPosition(*window_).y);
+                isSelecting = false;
+                released = sf::Vector2f(static_cast<float>(sf::Mouse::getPosition(*window_).x),
+                                        static_cast<float>(sf::Mouse::getPosition(*window_).y));
                 sf::Vector2f left_up = sf::Vector2f(std::min(pressed.x, released.x), std::min(pressed.y, released.y));
                 sf::Vector2f right_down =
                         sf::Vector2f(std::max(pressed.x, released.x), std::max(pressed.y, released.y));
 
 
                 double new_col_start = col_start + (col_end - col_start) / wid * left_up.x;
-                double new_col_end = col_end - (col_end - col_start) / wid * (wid - right_down.x);
+                double new_col_end = col_end - (col_end - col_start) / wid * (static_cast<float>(wid) - right_down.x);
 
                 double new_row_start = row_start + (row_end - row_start) / hei * right_down.y;
-                double new_row_end = row_end - (row_end - row_start) / hei * (hei - left_up.y);
+                double new_row_end = row_end - (row_end - row_start) / hei * (static_cast<float>(hei) - left_up.y);
 
                 coords prev{};
                 prev.col_start = col_start;
@@ -106,9 +100,6 @@ App::App(int height, int width, std::string name, bool wb)
                 prev.row_end = row_end;
 
                 history.push(prev);
-
-                std::cout << pressed.x << " " << pressed.y << " " << released.x << " " << released.y << "\n";
-                std::cout << new_row_start << " " << new_row_end << " " << new_col_start << " " << new_col_end << "\n";
 
                 row_start = new_row_start;
                 row_end = new_row_end;
@@ -126,7 +117,6 @@ App::App(int height, int width, std::string name, bool wb)
                 // std::cout << row_start << ' ' << row_end << std::endl;
 
                 calculateVertices(vertices, col_start, col_end, row_start, row_end, hei, wid, wb_);
-                changed = true;
             }
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
                 if (!history.empty()) {
@@ -135,15 +125,16 @@ App::App(int height, int width, std::string name, bool wb)
                     row_end = history.top().row_end;
                     col_end = history.top().col_end;
                     calculateVertices(vertices, col_start, col_end, row_start, row_end, hei, wid, wb_);
+                    history.pop();
                 }
             }
         }
-        if (changed) {
-            window_->clear(sf::Color(125, 125, 125, 255));
-            draw(vertices);
-            window_->display();
+        window_->clear(sf::Color(125, 125, 125, 255));
+        draw(vertices);
+        if (isSelecting) {
+            draw(pressed);
         }
-        changed = false;
+        window_->display();
     }
 }
 
@@ -153,8 +144,24 @@ void App::draw(std::vector<sf::Vertex> &drawables) {
     }
 }
 
-sf::RenderWindow *App::getWindow() const {
-    return window_;
+void App::draw(sf::Vector2f &startPos) {
+    sf::RectangleShape rec;
+    auto mousePos = sf::Vector2f(sf::Mouse::getPosition(*window_));
+    if (mousePos.x < startPos.y && mousePos.y < startPos.y) {
+        rec.setPosition(mousePos.x, mousePos.y);
+        rec.setSize(sf::Vector2f(startPos.x - mousePos.x, startPos.y - mousePos.y));
+    } else if (mousePos.x > startPos.x && mousePos.y < startPos.y) {
+        rec.setPosition(startPos.x, mousePos.y);
+        rec.setSize(sf::Vector2f(mousePos.x - startPos.x, startPos.y - mousePos.y));
+    } else if (mousePos.x > startPos.x && mousePos.y > startPos.y) {
+        rec.setPosition(startPos.x, startPos.y);
+        rec.setSize(sf::Vector2f(mousePos.x - startPos.x, mousePos.y - startPos.y));
+    } else if (mousePos.x < startPos.x && mousePos.y > startPos.y) {
+        rec.setPosition(mousePos.x, startPos.y);
+        rec.setSize(sf::Vector2f(startPos.x - mousePos.x, mousePos.y - startPos.y));
+    }
+    rec.setFillColor(sf::Color(0, 0, 255, 100));
+    window_->draw(rec);
 }
 
 App::~App() {

@@ -1,3 +1,4 @@
+#pragma once
 class Complex {
 public:
     Complex(double r, double i) : real_(r), imag_(i) {

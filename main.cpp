@@ -1,4 +1,4 @@
-#include "Mandelbrot.h"
+#include "App.h"
 
 int main() {
     App app(800, 800, "Mandelbrot");

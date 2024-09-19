@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(Mandelbrot_set VERSION 0.1.0 LANGUAGES C CXX)
 
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif ()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native")
+
+
 set(CMAKE_PREFIX_PATH "/usr/lib/x86_64-linux-gnu/cmake/SFML")
 set(SFML_DIR "/usr/lib/x86_64-linux-gnu/cmake/SFML")
-
 
 add_executable(Mandelbrot_set
         App.cpp

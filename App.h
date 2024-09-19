@@ -4,7 +4,7 @@
 
 class App {
 public:
-    App(int height, int width, std::string name = "Window", bool wb = false);
+    explicit App(int height = 800, int width = 800, std::string name = "Window", bool wb = false);
 
     ~App();
 

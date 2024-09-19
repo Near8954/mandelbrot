@@ -11,7 +11,7 @@ struct coords {
 
 
 sf::Color get_color(int iter) {
-    sf::Color color(iter * 47 % 255, iter * 85 % 255, iter * 92 % 255);
+    sf::Color color(iter * 193 % 255, iter * 85 % 255, iter * 92 % 255);
     return color;
 }
 
@@ -55,6 +55,7 @@ App::App(int height, int width, std::string name, bool wb)
     : height_(height), width_(width), name_(std::move(name)), wb_(wb) {
     window_ = new sf::RenderWindow(sf::VideoMode(height_, width_), name_);
     window_->clear(sf::Color(125, 125, 125, 255));
+    window_->display();
     sf::Vector2f pressed, released;
     std::vector<sf::Vertex> vertices;
     std::stack<coords> history;
@@ -83,8 +84,12 @@ App::App(int height, int width, std::string name, bool wb)
                 released = sf::Vector2f(static_cast<float>(sf::Mouse::getPosition(*window_).x),
                                         static_cast<float>(sf::Mouse::getPosition(*window_).y));
                 sf::Vector2f left_up = sf::Vector2f(std::min(pressed.x, released.x), std::min(pressed.y, released.y));
-                sf::Vector2f right_down =
-                        sf::Vector2f(std::max(pressed.x, released.x), std::max(pressed.y, released.y));
+
+                sf::Vector2f square_right_down = sf::Vector2f(
+                    std::min(pressed.x, released.x) + std::min(std::abs(pressed.x - released.x), std::abs(pressed.y - released.y)),
+                    std::min(pressed.y, released.y) + std::min(std::abs(pressed.x - released.x), std::abs(pressed.y - released.y)));
+
+                sf::Vector2f right_down = square_right_down;
 
 
                 double new_col_start = col_start + (col_end - col_start) / wid * left_up.x;
@@ -128,6 +133,16 @@ App::App(int height, int width, std::string name, bool wb)
                     history.pop();
                 }
             }
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::R) {
+                while (!history.empty()) {
+                    history.pop();
+                }
+                row_start = -2;
+                col_start = -2;
+                row_end = 2;
+                col_end = 2;
+                calculateVertices(vertices, col_start, col_end, row_start, row_end, hei, wid, wb_);
+            }
         }
         window_->clear(sf::Color(125, 125, 125, 255));
         draw(vertices);
@@ -160,7 +175,7 @@ void App::draw(sf::Vector2f &startPos) {
         rec.setPosition(mousePos.x, startPos.y);
         rec.setSize(sf::Vector2f(startPos.x - mousePos.x, mousePos.y - startPos.y));
     }
-    rec.setFillColor(sf::Color(0, 0, 255, 100));
+    rec.setFillColor(sf::Color(0, 0, 255, 70));
     window_->draw(rec);
 }
 
